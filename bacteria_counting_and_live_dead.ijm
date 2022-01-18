@@ -54,17 +54,17 @@ function processFile(input, output, file) {
 	Image_Title = getTitle();	
 	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
 	
-	Background_removed_Title = BackgroundRemoval(Image_Title, background_removal_sigma);
+	Background_removed_Title = Background_removal(Image_Title, background_removal_sigma);
 	Segmentation(Background_removed_Title, thresholding_choice);
 	Counting(Image_Title_Without_Extension);
-	makeMaskStack();
+	make_mask_stack();
 	selectWindow(Background_removed_Title); 
 	close();
 	selectWindow(Image_Title); 
 	close();
 }
 
-function BackgroundRemoval(Image_Title, background_removal_sigma){
+function Background_removal(Image_Title, background_removal_sigma){
 	selectWindow(Image_Title);
 	run("Duplicate...", "duplicate");
 	Duplicate_Title = getTitle();
@@ -238,7 +238,7 @@ function Counting(Image_Title_Without_Extension){
     }
 }
 
-function makeMaskStack(){
+function make_mask_stack(){
 	maskStackName = Image_Title_Without_Extension + "_live-dead-total-masks";
 	run("Images to Stack", "use");
 	run("Invert LUT");
