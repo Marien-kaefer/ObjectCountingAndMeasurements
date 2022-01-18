@@ -28,11 +28,12 @@ function processFile(input, output, file) {
 	print("Processing: " + file);
 	open(input + File.separator + file);
 	Image_Title = getTitle();	
+	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
 
 	
 	Background_removed_Title = BackgroundRemoval(Image_Title);
 	Segmentation(Background_removed_Title);
-	Counting();
+	Counting(Image_Title_Without_Extension);
 }
 
 function BackgroundRemoval(Image_Title){
@@ -126,19 +127,19 @@ function Segmentation(Background_removed_Title){
 	
 }
 
-function Counting(){
+function Counting(Image_Title_Without_Extension){
 	run("Set Measurements...", "area display redirect=None decimal=3");
 	selectWindow("Live"); 
 	run("Select None");
 	run("Measure");
 	liveAreaFraction = getValue("%Area");
 	run("Select None");
-	print("Live area fraction: " + liveAreaFraction); 
+	//print("Live area fraction: " + liveAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
 	liveCount = roiManager("count") + 1;
-	print("Live bacteria count: " + liveCount); 
+	//print("Live bacteria count: " + liveCount); 
 
 	run("Select None");
 	roiManager("Reset");
@@ -148,12 +149,12 @@ function Counting(){
 	run("Measure");
 	deadAreaFraction = getValue("%Area");
 	run("Select None");
-	print("Dead area fraction: " + deadAreaFraction); 
+	//print("Dead area fraction: " + deadAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
 	deadCount = roiManager("count") + 1;
-	print("Dead bacteria count: " + deadCount); 
+	//print("Dead bacteria count: " + deadCount); 
 
 	run("Select None");
 	roiManager("Reset");
@@ -163,12 +164,12 @@ function Counting(){
 	run("Measure");
 	totalAreaFraction = getValue("%Area");
 	run("Select None");
-	print("Dead area fraction: " + totalAreaFraction); 
+	//print("Dead area fraction: " + totalAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
 	totalCount = roiManager("count") + 1;	
-	print("Total bacteria count: " + totalCount); 
+	//print("Total bacteria count: " + totalCount); 
 
 	liveDeadAreaRatio = liveAreaFraction / deadAreaFraction;
 	liveDeadCountRatio = liveCount/deadCount; 
@@ -181,16 +182,18 @@ function Counting(){
 	results[4] = liveCount; 
 	results[5] = deadCount; 
 	results[6] = liveDeadCountRatio; 
-	Array.print(results); 
+	//Array.print(results); 
 
 	resultsRowLabels = newArray("Live fraction of image (%)", "Dead fraction of image (%)", "Total fraction of image (%)", "Live/Dead area ratio", "Live bacteria count", "Dead bacteria count", "Live/Dead count ratio");
-	Array.print(resultsRowLabels); 
+	//Array.print(resultsRowLabels); 
 
 	// Generate new table from results lists for display and data saving purposes. 
-	Table.create("Results Table");
+	Table.create(Image_Title_Without_Extension + "_Results-Table");
 	// set four new columns
 	Table.setColumn("Parameter", resultsRowLabels);
 	Table.setColumn("Results", results);
+	//saveAs("Results", "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output/Staph CC i4Results Table.csv");
+	saveAs("Results", output + File.separator + Image_Title_Without_Extension + "_Results-Table.csv");
 	
 	//clean up
     if (isOpen("Results")) {
@@ -198,5 +201,12 @@ function Counting(){
          run("Close" );
     {
 
-	
 	}
+
+
+function file_name_remove_extension(file_name){
+	dotIndex = lastIndexOf(file_name, "." ); 
+	file_name_without_extension = substring(file_name, 0, dotIndex );
+	//print( "Name without extension: " + file_name_without_extension );
+	return file_name_without_extension;
+}
