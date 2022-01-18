@@ -16,9 +16,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #@ File (label = "Input directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/input", style = "directory") input
 #@ File (label = "Output directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output", style = "directory") output
 #@ String (label = "File suffix", value = ".czi", persist=false) suffix
+#@ Double(label = "Background removal via Gaussian filter subtraction (Sigma)", value=20, persist=false) background_removal_sigma
+#@ Double(label = "Image smoothing - Median filter (Sigma)", value=1, persist=false) median_filter_smoothing_sigma
 #@ String(label = "Thresholding?", choices = {"Global (Otsu)", "Local (Bernsen)"}, style = "radioButtonHorizontal", persist=false)  thresholding_choice
-#@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
 #@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
+#@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
+#@ Double(label = "Bacteria min. size (micron^2)", value=0.1, persist=true) object_min_size
+#@ Float(label = "Bacteria max. size (micron^2)", value=10000, persist=true) object_max_size
+#@ Double(label = "Bacteria min. circularity", value=0.8, persist=true) object_min_circularity
+#@ Double(label = "Bacteria max. circularity", value=1.0, persist=true) object_max_circularity
 
 //setBatchMode(true);
 
@@ -48,7 +54,7 @@ function processFile(input, output, file) {
 	Image_Title = getTitle();	
 	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
 	
-	Background_removed_Title = BackgroundRemoval(Image_Title);
+	Background_removed_Title = BackgroundRemoval(Image_Title, background_removal_sigma);
 	Segmentation(Background_removed_Title, thresholding_choice);
 	Counting(Image_Title_Without_Extension);
 	makeMaskStack();
@@ -58,13 +64,13 @@ function processFile(input, output, file) {
 	close();
 }
 
-function BackgroundRemoval(Image_Title){
+function BackgroundRemoval(Image_Title, background_removal_sigma){
 	selectWindow(Image_Title);
 	run("Duplicate...", "duplicate");
 	Duplicate_Title = getTitle();
-	run("Gaussian Blur...", "sigma=20 stack");
+	run("Gaussian Blur...", "sigma=" + background_removal_sigma + " stack");
 	imageCalculator("Subtract create stack", Image_Title , Duplicate_Title);
-	run("Median...", "radius=1 stack");
+	run("Median...", "radius=" + median_filter_smoothing_sigma + " stack");
 	Background_removed_Title = getTitle(); 
 	selectWindow(Duplicate_Title); 
 	close();
@@ -164,7 +170,7 @@ function Counting(Image_Title_Without_Extension){
 	//print("Live area fraction: " + liveAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
 	liveCount = roiManager("count") + 1;
 	//print("Live bacteria count: " + liveCount); 
 
@@ -179,7 +185,7 @@ function Counting(Image_Title_Without_Extension){
 	//print("Dead area fraction: " + deadAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
 	deadCount = roiManager("count") + 1;
 	//print("Dead bacteria count: " + deadCount); 
 
@@ -194,7 +200,7 @@ function Counting(Image_Title_Without_Extension){
 	//print("Dead area fraction: " + totalAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
 	totalCount = roiManager("count") + 1;	
 	//print("Total bacteria count: " + totalCount); 	
 	
