@@ -41,6 +41,7 @@ function BackgroundRemoval(Image_Title){
 	Duplicate_Title = getTitle();
 	run("Gaussian Blur...", "sigma=20 stack");
 	imageCalculator("Subtract create stack", Image_Title , Duplicate_Title);
+	run("Median...", "radius=1 stack");
 	Background_removed_Title = getTitle(); 
 	selectWindow(Duplicate_Title); 
 	close();
@@ -63,10 +64,16 @@ function Segmentation(Background_removed_Title){
 	live_particle_segmentation_C1 = "live particle segmentation Channel1";
 	rename(live_particle_segmentation_C1);
 
-	selectImage("C1-" + Duplicate_Title);
+	selectImage("C1-" + Duplicate_Title);	
+	setAutoThreshold("Otsu dark");
+	//run("Threshold...");
+	setOption("BlackBackground", false);
+	run("Convert to Mask", "method=Otsu background=Dark calculate");
+	/*
 	run("8-bit");
 	print("Auto local threshold using Bernsen method.");
 	run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
+	*/
 	mask_Title_C1 = getTitle();
 
 	setPasteMode("AND");
@@ -86,9 +93,15 @@ function Segmentation(Background_removed_Title){
 	rename(live_particle_segmentation_C2);
 
 	selectImage("C2-" + Duplicate_Title);
+	setAutoThreshold("Otsu dark");
+	//run("Threshold...");
+	setOption("BlackBackground", false);
+	run("Convert to Mask", "method=Otsu background=Dark calculate");
+	/*
 	run("8-bit");
 	print("Auto local threshold using Bernsen method.");
 	run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
+	*/
 	mask_Title_C2 = getTitle();
 
 	setPasteMode("AND");
@@ -112,3 +125,78 @@ function Segmentation(Background_removed_Title){
 	close(); 
 	
 }
+
+function Counting(){
+	run("Set Measurements...", "area display redirect=None decimal=3");
+	selectWindow("Live"); 
+	run("Select None");
+	run("Measure");
+	liveAreaFraction = getValue("%Area");
+	run("Select None");
+	print("Live area fraction: " + liveAreaFraction); 
+	setOption("BlackBackground", false);
+	run("Convert to Mask");
+	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	liveCount = roiManager("count") + 1;
+	print("Live bacteria count: " + liveCount); 
+
+	run("Select None");
+	roiManager("Reset");
+
+	selectWindow("Dead"); 
+	run("Select None");
+	run("Measure");
+	deadAreaFraction = getValue("%Area");
+	run("Select None");
+	print("Dead area fraction: " + deadAreaFraction); 
+	setOption("BlackBackground", false);
+	run("Convert to Mask");
+	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	deadCount = roiManager("count") + 1;
+	print("Dead bacteria count: " + deadCount); 
+
+	run("Select None");
+	roiManager("Reset");
+
+	selectWindow("Total"); 
+	run("Select None");
+	run("Measure");
+	totalAreaFraction = getValue("%Area");
+	run("Select None");
+	print("Dead area fraction: " + totalAreaFraction); 
+	setOption("BlackBackground", false);
+	run("Convert to Mask");
+	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
+	totalCount = roiManager("count") + 1;	
+	print("Total bacteria count: " + totalCount); 
+
+	liveDeadAreaRatio = liveAreaFraction / deadAreaFraction;
+	liveDeadCountRatio = liveCount/deadCount; 
+
+	results = newArray; 
+	results[0] = liveAreaFraction;
+	results[1] = deadAreaFraction;
+	results[2] = totalAreaFraction;
+	results[3] = liveDeadAreaRatio; 
+	results[4] = liveCount; 
+	results[5] = deadCount; 
+	results[6] = liveDeadCountRatio; 
+	Array.print(results); 
+
+	resultsRowLabels = newArray("Live fraction of image (%)", "Dead fraction of image (%)", "Total fraction of image (%)", "Live/Dead area ratio", "Live bacteria count", "Dead bacteria count", "Live/Dead count ratio");
+	Array.print(resultsRowLabels); 
+
+	// Generate new table from results lists for display and data saving purposes. 
+	Table.create("Results Table");
+	// set four new columns
+	Table.setColumn("Parameter", resultsRowLabels);
+	Table.setColumn("Results", results);
+	
+	//clean up
+    if (isOpen("Results")) {
+         selectWindow("Results"); 
+         run("Close" );
+    {
+
+	
+	}
