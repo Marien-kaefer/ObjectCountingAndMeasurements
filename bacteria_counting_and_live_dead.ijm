@@ -1,11 +1,26 @@
+/*
+Macro to measure ...
+
+
+												- Written by Marie Held [mheldb@liverpool.ac.uk] February 2022
+												  Liverpool CCI (https://cci.liverpool.ac.uk/)
+MIT License
+Copyright (c) [2022] [Marie Held {mheldb@liverpool.ac.uk}, Image Analyst Liverpool CCI (https://cci.liverpool.ac.uk/)]
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 
 #@ File (label = "Input directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/input", style = "directory") input
 #@ File (label = "Output directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output", style = "directory") output
 #@ String (label = "File suffix", value = ".czi", persist=false) suffix
+#@ String(label = "Thresholding?", choices = {"Global (Otsu)", "Local (Bernsen)"}, style = "radioButtonHorizontal", persist=false)  thresholding_choice
 #@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
-//#@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
+#@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
 
-setBatchMode(true);
+//setBatchMode(true);
 
 processFolder(input);
 beep()
@@ -34,7 +49,7 @@ function processFile(input, output, file) {
 	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
 	
 	Background_removed_Title = BackgroundRemoval(Image_Title);
-	Segmentation(Background_removed_Title);
+	Segmentation(Background_removed_Title, thresholding_choice);
 	Counting(Image_Title_Without_Extension);
 	makeMaskStack();
 	selectWindow(Background_removed_Title); 
@@ -56,7 +71,7 @@ function BackgroundRemoval(Image_Title){
 	return Background_removed_Title;
 }
 
-function Segmentation(Background_removed_Title){
+function Segmentation(Background_removed_Title, thresholding_choice){
 	// find maxima as an approximation of individual bacteria. For information on prominence, see here: https://forum.image.sc/t/new-maxima-finder-menu-in-fiji/25504/5
 	selectImage(Background_removed_Title);	
 	run("Duplicate...", "duplicate");
@@ -73,15 +88,17 @@ function Segmentation(Background_removed_Title){
 	rename(live_particle_segmentation_C1);
 
 	selectImage("C1-" + Duplicate_Title);	
-	setAutoThreshold("Otsu dark");
-	//run("Threshold...");
-	setOption("BlackBackground", false);
-	run("Convert to Mask", "method=Otsu background=Dark calculate");
-	/*
-	run("8-bit");
-	print("Auto local threshold using Bernsen method.");
-	run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
-	*/
+	if (thresholding_choice == "Global (Otsu)"){   
+		setAutoThreshold("Otsu dark");
+		//run("Threshold...");
+		setOption("BlackBackground", false);
+		run("Convert to Mask", "method=Otsu background=Dark calculate");
+	} else if (thresholding_choice == "Local (Bernsen)"){
+		run("8-bit");
+		print("Auto local threshold using Bernsen method.");
+		run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
+	}
+	
 	mask_Title_C1 = getTitle();
 
 	setPasteMode("AND");
@@ -101,15 +118,18 @@ function Segmentation(Background_removed_Title){
 	rename(live_particle_segmentation_C2);
 
 	selectImage("C2-" + Duplicate_Title);
-	setAutoThreshold("Otsu dark");
-	//run("Threshold...");
-	setOption("BlackBackground", false);
-	run("Convert to Mask", "method=Otsu background=Dark calculate");
-	/*
-	run("8-bit");
-	print("Auto local threshold using Bernsen method.");
-	run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
-	*/
+
+	if (thresholding_choice == "Global (Otsu)"){   
+		setAutoThreshold("Otsu dark");
+		//run("Threshold...");
+		setOption("BlackBackground", false);
+		run("Convert to Mask", "method=Otsu background=Dark calculate");
+	} else if (thresholding_choice == "Local (Bernsen)"){
+		run("8-bit");
+		print("Auto local threshold using Bernsen method.");
+		run("Auto Local Threshold", "method=Bernsen radius=Bernsen_radius parameter_1=0 parameter_2=0 white");
+	}
+	
 	mask_Title_C2 = getTitle();
 
 	setPasteMode("AND");
@@ -204,7 +224,7 @@ function Counting(Image_Title_Without_Extension){
 	Table.setColumn("Results", results);
 	//saveAs("Results", "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output/Staph CC i4Results Table.csv");
 	saveAs("Results", output + File.separator + Image_Title_Without_Extension + "_Results-Table.csv");
-	close(); 
+	//close(); 
 	//clean up
     if (isOpen("Results")) {
          selectWindow("Results"); 
