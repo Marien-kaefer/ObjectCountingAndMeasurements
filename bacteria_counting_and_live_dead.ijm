@@ -3,11 +3,15 @@
 #@ File (label = "Output directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output", style = "directory") output
 #@ String (label = "File suffix", value = ".czi", persist=false) suffix
 #@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
-#@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
+//#@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
 
-
+setBatchMode(true);
 
 processFolder(input);
+beep()
+
+
+// FUNCTIONS 
 
 // function to scan folders/subfolders/files to find files with correct suffix
 function processFolder(input) {
@@ -20,8 +24,7 @@ function processFolder(input) {
 			processFile(input, output, list[i]);
 	}
 }
-
-
+
 function processFile(input, output, file) {
 	//print("Processing: " + input + File.separator + file);
 	//print("Processing folder: " + input);
@@ -29,11 +32,15 @@ function processFile(input, output, file) {
 	open(input + File.separator + file);
 	Image_Title = getTitle();	
 	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
-
-	
+	
 	Background_removed_Title = BackgroundRemoval(Image_Title);
 	Segmentation(Background_removed_Title);
 	Counting(Image_Title_Without_Extension);
+	makeMaskStack();
+	selectWindow(Background_removed_Title); 
+	close();
+	selectWindow(Image_Title); 
+	close();
 }
 
 function BackgroundRemoval(Image_Title){
@@ -60,7 +67,7 @@ function Segmentation(Background_removed_Title){
 	getMinAndMax(min, max);
 	Prominence = max * prominence_fraction;
 	prominence_output_label_C1 = "calculated from intensity values.";
-	print("Segmenting particles of Channel1 via Find Maxima....");
+	//print("Segmenting particles of Channel1 via Find Maxima....");
 	run("Find Maxima...", "prominence=Prominence output=[Segmented Particles]");
 	live_particle_segmentation_C1 = "live particle segmentation Channel1";
 	rename(live_particle_segmentation_C1);
@@ -88,7 +95,7 @@ function Segmentation(Background_removed_Title){
 	Prominence = max * prominence_fraction;
 	prominence_output_label_C2 = "calculated from intensity values.";
 	//run("Median...", "radius=1");
-	print("Segmenting particles of Channel2 via Find Maxima....");
+	//print("Segmenting particles of Channel2 via Find Maxima....");
 	run("Find Maxima...", "prominence=Prominence output=[Segmented Particles]");
 	live_particle_segmentation_C2 = "live particle segmentation Channel2";
 	rename(live_particle_segmentation_C2);
@@ -169,7 +176,10 @@ function Counting(Image_Title_Without_Extension){
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=0.1-Infinity circularity=0.80-1.00 clear add");
 	totalCount = roiManager("count") + 1;	
-	//print("Total bacteria count: " + totalCount); 
+	//print("Total bacteria count: " + totalCount); 	
+	
+	run("Select None");
+	roiManager("Reset");
 
 	liveDeadAreaRatio = liveAreaFraction / deadAreaFraction;
 	liveDeadCountRatio = liveCount/deadCount; 
@@ -194,15 +204,22 @@ function Counting(Image_Title_Without_Extension){
 	Table.setColumn("Results", results);
 	//saveAs("Results", "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output/Staph CC i4Results Table.csv");
 	saveAs("Results", output + File.separator + Image_Title_Without_Extension + "_Results-Table.csv");
-	
+	close(); 
 	//clean up
     if (isOpen("Results")) {
          selectWindow("Results"); 
          run("Close" );
-    {
+    }
+}
 
-	}
-
+function makeMaskStack(){
+	maskStackName = Image_Title_Without_Extension + "_live-dead-total-masks";
+	run("Images to Stack", "use");
+	run("Invert LUT");
+	saveAs("Tiff", output + File.separator + maskStackName + ".tif");
+	//print("Saved as: " + output + File.separator + maskStackName + ".tif");
+	close();
+}
 
 function file_name_remove_extension(file_name){
 	dotIndex = lastIndexOf(file_name, "." ); 
