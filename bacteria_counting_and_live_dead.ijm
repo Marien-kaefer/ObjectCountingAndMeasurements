@@ -20,10 +20,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #@ String(label = "Thresholding?", choices = {"Global (Otsu)", "Local (Bernsen)"}, style = "radioButtonHorizontal", persist=false)  thresholding_choice
 #@ Integer(label = "Bernsen radius (px; only applicable for local filtering)", value=15, persist=false) Bernsen_radius
 #@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
-#@ Double(label = "Object min. size (micron^2)", value=0, persist=true) object_min_size
-#@ Float(label = "Object max. size (micron^2)", value=10000, persist=true) object_max_size
-#@ Double(label = "Object min. circularity", value=0.0, persist=true) object_min_circularity
-#@ Double(label = "Object max. circularity", value=1.0, persist=true) object_max_circularity
+#@ Double(label = "Object min. size (micron^2)", value=0, persist=false) object_min_size
+#@ Float(label = "Object max. size (micron^2)", value=10000, persist=false) object_max_size
+#@ Double(label = "Object min. circularity", value=0.0, persist=false) object_min_circularity
+#@ Double(label = "Object max. circularity", value=1.0, persist=false) object_max_circularity
 
 
 processFolder(input);
@@ -59,6 +59,7 @@ function processFile(input, output, file) {
 	Counting(Image_Title_Without_Extension);
 	make_mask_stack();
 	selectWindow(Background_removed_Title); 
+	saveAs("Tiff", output + File.separator + Image_Title_Without_Extension + "_BG-removed.tif");
 	close();
 	selectWindow(Image_Title); 
 	close();
@@ -182,8 +183,10 @@ function Counting(Image_Title_Without_Extension){
 	roiManager("Select", ROI_count - 1);
 	run("Measure");
 	liveAreaFraction = getValue("Area") / totalImageArea * 100; 
-	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.roi");	
-
+	if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.roi");	
+	}
+	
 	run("Select None");
 	roiManager("Reset");
 
@@ -200,7 +203,9 @@ function Counting(Image_Title_Without_Extension){
 	roiManager("Select", ROI_count - 1);
 	run("Measure");
 	deadAreaFraction = getValue("Area") / totalImageArea * 100; 
-	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
+	if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
+	}
 
 	run("Select None");
 	roiManager("Reset");
@@ -218,7 +223,9 @@ function Counting(Image_Title_Without_Extension){
 	roiManager("Select", ROI_count - 1);
 	run("Measure");
 	totalAreaFraction = getValue("Area") / totalImageArea * 100; 
-	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+	if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+	}
 
 	run("Select None");
 	roiManager("Reset");
