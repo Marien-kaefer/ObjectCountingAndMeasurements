@@ -19,17 +19,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #@ Double(label = "Background removal via Gaussian filter subtraction (Sigma)", value=20, persist=false) background_removal_sigma
 #@ Double(label = "Image smoothing - Median filter (Sigma)", value=1, persist=false) median_filter_smoothing_sigma
 #@ String(label = "Thresholding?", choices = {"Global (Otsu)", "Local (Bernsen)"}, style = "radioButtonHorizontal", persist=false)  thresholding_choice
-#@ Integer(label = "Bernsen radius", value=15, persist=false) Bernsen_radius
+#@ Integer(label = "Bernsen radius (px; only applicable for local filtering)", value=15, persist=false) Bernsen_radius
 #@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
-#@ Double(label = "Bacteria min. size (micron^2)", value=0.1, persist=true) object_min_size
-#@ Float(label = "Bacteria max. size (micron^2)", value=10000, persist=true) object_max_size
-#@ Double(label = "Bacteria min. circularity", value=0.8, persist=true) object_min_circularity
-#@ Double(label = "Bacteria max. circularity", value=1.0, persist=true) object_max_circularity
+#@ Double(label = "Object min. size (micron^2)", value=0, persist=true) object_min_size
+#@ Float(label = "Object max. size (micron^2)", value=10000, persist=true) object_max_size
+#@ Double(label = "Object min. circularity", value=0.0, persist=true) object_min_circularity
+#@ Double(label = "Object max. circularity", value=1.0, persist=true) object_max_circularity
 
-//setBatchMode(true);
 
 processFolder(input);
 beep()
+print("All done! Please check the output folder for the generated results files."); 
 
 
 // FUNCTIONS 
@@ -161,49 +161,61 @@ function Segmentation(Background_removed_Title, thresholding_choice){
 }
 
 function Counting(Image_Title_Without_Extension){
-	run("Set Measurements...", "area display redirect=None decimal=3");
+	run("Set Measurements...", "area area_fraction display redirect=None decimal=3");
 	selectWindow("Live"); 
 	run("Select None");
 	run("Measure");
-	liveAreaFraction = getValue("%Area");
+	totalImageArea = getValue("Area");
 	run("Select None");
-	//print("Live area fraction: " + liveAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
 	liveCount = roiManager("count") + 1;
 	//print("Live bacteria count: " + liveCount); 
+	roiManager("Combine");
+	roiManager("Add");
+	ROI_count = roiManager("count"); 
+	roiManager("Select", ROI_count - 1);
+	run("Measure");
+	liveAreaFraction = getValue("Area") / totalImageArea * 100; 
+	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.roi");	
 
 	run("Select None");
 	roiManager("Reset");
 
 	selectWindow("Dead"); 
 	run("Select None");
-	run("Measure");
-	deadAreaFraction = getValue("%Area");
-	run("Select None");
-	//print("Dead area fraction: " + deadAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
 	deadCount = roiManager("count") + 1;
 	//print("Dead bacteria count: " + deadCount); 
+	roiManager("Combine");
+	roiManager("Add");
+	ROI_count = roiManager("count"); 
+	roiManager("Select", ROI_count - 1);
+	run("Measure");
+	deadAreaFraction = getValue("Area") / totalImageArea * 100; 
+	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
 
 	run("Select None");
 	roiManager("Reset");
 
-	selectWindow("Total"); 
+	selectWindow("Total");  
 	run("Select None");
-	run("Measure");
-	totalAreaFraction = getValue("%Area");
-	run("Select None");
-	//print("Dead area fraction: " + totalAreaFraction); 
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
-	totalCount = roiManager("count") + 1;	
-	//print("Total bacteria count: " + totalCount); 	
-	
+	totalCount = roiManager("count") + 1;
+	//print("Total bacteria count: " + totalCount); 
+	roiManager("Combine");
+	roiManager("Add");
+	ROI_count = roiManager("count"); 
+	roiManager("Select", ROI_count - 1);
+	run("Measure");
+	totalAreaFraction = getValue("Area") / totalImageArea * 100; 
+	roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+
 	run("Select None");
 	roiManager("Reset");
 
