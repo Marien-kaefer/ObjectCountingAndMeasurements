@@ -1,5 +1,5 @@
 /*
-Macro to measure ...
+Macro to count bacteria in a field of view and quantify the live/dead ratio of the identified bacteria stained with a live dead kit.
 
 
 												- Written by Marie Held [mheldb@liverpool.ac.uk] February 2022
@@ -11,7 +11,6 @@ modify, merge, publish, distribute, sublicense, and/or sell copies of the Softwa
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
 
 #@ File (label = "Input directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/input", style = "directory") input
 #@ File (label = "Output directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output", style = "directory") output
@@ -46,6 +45,7 @@ function processFolder(input) {
 	}
 }
 
+//function to process a single file
 function processFile(input, output, file) {
 	//print("Processing: " + input + File.separator + file);
 	//print("Processing folder: " + input);
@@ -55,13 +55,15 @@ function processFile(input, output, file) {
 	Image_Title_Without_Extension = file_name_remove_extension(Image_Title);
 	
 	Background_removed_Title = Background_removal(Image_Title, background_removal_sigma);
-	Segmentation(Background_removed_Title, thresholding_choice);
+	Prominence = Segmentation(Background_removed_Title, thresholding_choice);
 	Counting(Image_Title_Without_Extension);
 	make_mask_stack();
 	selectWindow(Background_removed_Title); 
 	close();
 	selectWindow(Image_Title); 
 	close();
+	write_input_parameters_to_file(Image_Title_Without_Extension, background_removal_sigma, median_filter_smoothing_sigma, thresholding_choice, Bernsen_radius, object_min_size, object_max_size, object_min_circularity, object_max_circularity, Prominence); 
+ 
 }
 
 function Background_removal(Image_Title, background_removal_sigma){
@@ -157,6 +159,8 @@ function Segmentation(Background_removed_Title, thresholding_choice){
 	rename("Dead"); 
 	selectWindow("C1-" + Duplicate_Title); 
 	close(); 
+	
+	return Prominence
 	
 }
 
@@ -257,6 +261,21 @@ function make_mask_stack(){
 	saveAs("Tiff", output + File.separator + maskStackName + ".tif");
 	//print("Saved as: " + output + File.separator + maskStackName + ".tif");
 	close();
+}
+
+function write_input_parameters_to_file(Image_Title_Without_Extension, background_removal_sigma, median_filter_smoothing_sigma, thresholding_choice, Bernsen_radius, object_min_size, object_max_size, object_min_circularity, object_max_circularity, Prominence){ 
+	parameters_output_file = File.open(output + File.separator + Image_Title_Without_Extension + "-analysis_parameters.txt"); 
+	print(parameters_output_file, "Gaussian filter sigma for background removal: " + background_removal_sigma);
+	print(parameters_output_file, "Median filter sigma for smooting: " + median_filter_smoothing_sigma);
+	print(parameters_output_file, "Thresholding method: " + thresholding_choice);
+    print(parameters_output_file, "Bernsen radius (only applied with local thresholding option): " + Bernsen_radius);
+    print(parameters_output_file, "Object min. size (micron^2): " + object_min_size);
+    print(parameters_output_file, "Object max. size (micron^2): " + object_max_size);
+    print(parameters_output_file, "Object min. circularity: " + object_min_circularity);
+    print(parameters_output_file, "Object max. circularity: " + object_max_circularity);
+    print(parameters_output_file, "Prominence (calculated from intensity values): " + Prominence);
+    //print(parameters_output_file, "Processed Image: " + processed_image);
+	File.close(parameters_output_file)
 }
 
 function file_name_remove_extension(file_name){
