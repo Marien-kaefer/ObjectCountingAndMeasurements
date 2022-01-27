@@ -175,16 +175,20 @@ function Counting(Image_Title_Without_Extension){
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
-	liveCount = roiManager("count") + 1;
-	//print("Live bacteria count: " + liveCount); 
-	roiManager("Combine");
-	roiManager("Add");
-	ROI_count = roiManager("count"); 
-	roiManager("Select", ROI_count - 1);
-	run("Measure");
-	liveAreaFraction = getValue("Area") / totalImageArea * 100; 
-	if (ROI_count >= 1){
+	selectWindow("Summary");
+	IJ.renameResults("Summary","Results");
+	liveCount = getResult("Count",0);
+	liveAreaFraction = getResult("%Area"); 
+	print("Live bacteria count: " + liveCount + ";  Live bacteria area fraction (%): " + liveAreaFraction); 
+	ROI_count = roiManager("count");	
+	if (ROI_count <0) {
+		//do nothing	
+	}
+	if (ROI_count == 0){
 		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.roi");	
+	} 
+	else if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.zip");	
 	}
 	
 	run("Select None");
@@ -195,18 +199,22 @@ function Counting(Image_Title_Without_Extension){
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
-	deadCount = roiManager("count") + 1;
-	//print("Dead bacteria count: " + deadCount); 
-	roiManager("Combine");
-	roiManager("Add");
-	ROI_count = roiManager("count"); 
-	roiManager("Select", ROI_count - 1);
-	run("Measure");
-	deadAreaFraction = getValue("Area") / totalImageArea * 100; 
-	if (ROI_count >= 1){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
+	selectWindow("Summary");
+	IJ.renameResults("Summary","Results");	
+	deadCount = getResult("Count",0);
+	deadAreaFraction = getResult("%Area"); 
+	print("Dead bacteria count: " + deadCount + ";  Dead bacteria area fraction (%): " + deadAreaFraction); 
+	ROI_count = roiManager("count");	
+	if (ROI_count <0) {
+		//do nothing
 	}
-
+	if (ROI_count == 0){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
+	} 
+	else if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.zip");	
+	}
+	
 	run("Select None");
 	roiManager("Reset");
 
@@ -215,18 +223,22 @@ function Counting(Image_Title_Without_Extension){
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
-	totalCount = roiManager("count") + 1;
-	//print("Total bacteria count: " + totalCount); 
-	roiManager("Combine");
-	roiManager("Add");
-	ROI_count = roiManager("count"); 
-	roiManager("Select", ROI_count - 1);
-	run("Measure");
-	totalAreaFraction = getValue("Area") / totalImageArea * 100; 
-	if (ROI_count >= 1){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+	selectWindow("Summary");
+	IJ.renameResults("Summary","Results");
+	totalCount = getResult("Count",0);
+	totalAreaFraction =  getResult("%Area"); 
+	print("Total bacteria count: " + totalCount + ";  Total bacteria area fraction (%): " + totalAreaFraction); 
+	ROI_count = roiManager("count");	
+	if (ROI_count <0) {
+		//do nothing
 	}
-
+	if (ROI_count == 0){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+	} 
+	else if (ROI_count >= 1){
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.zip");	
+	}
+	
 	run("Select None");
 	roiManager("Reset");
 
