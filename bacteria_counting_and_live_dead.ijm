@@ -179,7 +179,7 @@ function Counting(Image_Title_Without_Extension){
 	IJ.renameResults("Summary","Results");
 	liveCount = getResult("Count",0);
 	liveAreaFraction = getResult("%Area"); 
-	print("Live bacteria count: " + liveCount + ";  Live bacteria area fraction (%): " + liveAreaFraction); 
+	//print("Live bacteria count: " + liveCount + ";  Live bacteria area fraction (%): " + liveAreaFraction); 
 	ROI_count = roiManager("count");	
 	if (ROI_count <0) {
 		//do nothing	
@@ -203,7 +203,7 @@ function Counting(Image_Title_Without_Extension){
 	IJ.renameResults("Summary","Results");	
 	deadCount = getResult("Count",0);
 	deadAreaFraction = getResult("%Area"); 
-	print("Dead bacteria count: " + deadCount + ";  Dead bacteria area fraction (%): " + deadAreaFraction); 
+	//print("Dead bacteria count: " + deadCount + ";  Dead bacteria area fraction (%): " + deadAreaFraction); 
 	ROI_count = roiManager("count");	
 	if (ROI_count <0) {
 		//do nothing
@@ -227,7 +227,7 @@ function Counting(Image_Title_Without_Extension){
 	IJ.renameResults("Summary","Results");
 	totalCount = getResult("Count",0);
 	totalAreaFraction =  getResult("%Area"); 
-	print("Total bacteria count: " + totalCount + ";  Total bacteria area fraction (%): " + totalAreaFraction); 
+	//print("Total bacteria count: " + totalCount + ";  Total bacteria area fraction (%): " + totalAreaFraction); 
 	ROI_count = roiManager("count");	
 	if (ROI_count <0) {
 		//do nothing
