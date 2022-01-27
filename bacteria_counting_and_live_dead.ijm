@@ -174,7 +174,7 @@ function Counting(Image_Title_Without_Extension){
 	run("Select None");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
 	liveCount = roiManager("count") + 1;
 	//print("Live bacteria count: " + liveCount); 
 	roiManager("Combine");
@@ -194,7 +194,7 @@ function Counting(Image_Title_Without_Extension){
 	run("Select None");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
 	deadCount = roiManager("count") + 1;
 	//print("Dead bacteria count: " + deadCount); 
 	roiManager("Combine");
@@ -214,7 +214,7 @@ function Counting(Image_Title_Without_Extension){
 	run("Select None");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add");
+	run("Analyze Particles...", "size=object_min_size-object_max_size circularity=object_min_circularity-object_max_circularity clear add summarize");
 	totalCount = roiManager("count") + 1;
 	//print("Total bacteria count: " + totalCount); 
 	roiManager("Combine");
