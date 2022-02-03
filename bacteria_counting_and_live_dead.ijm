@@ -59,7 +59,7 @@ function processFile(input, output, file) {
 	Counting(Image_Title_Without_Extension);
 	make_mask_stack();
 	selectWindow(Background_removed_Title); 
-	saveAs("Tiff", output + File.separator + Image_Title_Without_Extension + "_BG-removed.tif");
+	saveAs("Tiff", output + File.separator + Image_Title_Without_Extension + "_BG-removed-smoothed.tif");
 	close();
 	selectWindow(Image_Title); 
 	close();
@@ -185,10 +185,10 @@ function Counting(Image_Title_Without_Extension){
 		//do nothing	
 	}
 	if (ROI_count == 0){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.roi");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_live-fraction.roi");	
 	} 
 	else if (ROI_count >= 1){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "live-fraction.zip");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_live-fraction.zip");	
 	}
 	
 	run("Select None");
@@ -209,10 +209,10 @@ function Counting(Image_Title_Without_Extension){
 		//do nothing
 	}
 	if (ROI_count == 0){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.roi");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_dead-fraction.roi");	
 	} 
 	else if (ROI_count >= 1){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "dead-fraction.zip");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_dead-fraction.zip");	
 	}
 	
 	run("Select None");
@@ -233,10 +233,10 @@ function Counting(Image_Title_Without_Extension){
 		//do nothing
 	}
 	if (ROI_count == 0){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.roi");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_total-fraction.roi");	
 	} 
 	else if (ROI_count >= 1){
-		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "total-fraction.zip");	
+		roiManager("Save", output + File.separator + Image_Title_Without_Extension + "_total-fraction.zip");	
 	}
 	
 	run("Select None");
@@ -274,7 +274,7 @@ function Counting(Image_Title_Without_Extension){
 }
 
 function make_mask_stack(){
-	maskStackName = Image_Title_Without_Extension + "_live-dead-total-masks";
+	maskStackName = Image_Title_Without_Extension + "_dead-live-total-masks";
 	run("Images to Stack", "use");
 	run("Invert LUT");
 	saveAs("Tiff", output + File.separator + maskStackName + ".tif");
@@ -283,16 +283,17 @@ function make_mask_stack(){
 }
 
 function write_input_parameters_to_file(Image_Title_Without_Extension, background_removal_sigma, median_filter_smoothing_sigma, thresholding_choice, Bernsen_radius, object_min_size, object_max_size, object_min_circularity, object_max_circularity, Prominence){ 
-	parameters_output_file = File.open(output + File.separator + Image_Title_Without_Extension + "-analysis_parameters.txt"); 
+	parameters_output_file = File.open(output + File.separator + Image_Title_Without_Extension + "_analysis-parameters.txt"); 
 	print(parameters_output_file, "Gaussian filter sigma for background removal: " + background_removal_sigma);
 	print(parameters_output_file, "Median filter sigma for smooting: " + median_filter_smoothing_sigma);
 	print(parameters_output_file, "Thresholding method: " + thresholding_choice);
     print(parameters_output_file, "Bernsen radius (only applied with local thresholding option): " + Bernsen_radius);
+    print(parameters_output_file, "Fraction for prominence calculation: " + prominence_fraction);
+    print(parameters_output_file, "Prominence (calculated from intensity values): " + Prominence);
     print(parameters_output_file, "Object min. size (micron^2): " + object_min_size);
     print(parameters_output_file, "Object max. size (micron^2): " + object_max_size);
     print(parameters_output_file, "Object min. circularity: " + object_min_circularity);
     print(parameters_output_file, "Object max. circularity: " + object_max_circularity);
-    print(parameters_output_file, "Prominence (calculated from intensity values): " + Prominence);
     //print(parameters_output_file, "Processed Image: " + processed_image);
 	File.close(parameters_output_file)
 }
