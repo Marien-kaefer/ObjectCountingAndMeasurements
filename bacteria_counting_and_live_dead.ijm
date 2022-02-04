@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #@ File (label = "Output directory", value = "//cci02.liv.ac.uk/cci/private/Marie/Image Analysis/2022-01-13-RAVAL-Haitham-AlAbiad-bacteria-counting-live-dead/Fiji_script_test_folder/output", style = "directory") output
 #@ String (label = "File suffix", value = ".czi", persist=false) suffix
 #@ Double(label = "Background removal via Gaussian filter subtraction (Sigma)", value=20, persist=false) background_removal_sigma
-#@ Double(label = "Image smoothing - Median filter (Sigma)", value=1, persist=false) median_filter_smoothing_sigma
+#@ Double(label = "Image smoothing - Median filter (Sigma)", value=2, persist=false) median_filter_smoothing_sigma
 #@ String(label = "Thresholding?", choices = {"Global (Otsu)", "Local (Bernsen)"}, style = "radioButtonHorizontal", persist=false)  thresholding_choice
 #@ Integer(label = "Bernsen radius (px; only applicable for local filtering)", value=15, persist=false) Bernsen_radius
 #@ Double(label = "Fraction for prominence calculation", value=0.02, persist=false) prominence_fraction
