@@ -246,16 +246,18 @@ function Counting(Image_Title_Without_Extension){
 	liveDeadCountRatio = liveCount/deadCount; 
 
 	results = newArray; 
-	results[0] = liveAreaFraction;
-	results[1] = deadAreaFraction;
-	results[2] = totalAreaFraction;
-	results[3] = liveDeadAreaRatio; 
-	results[4] = liveCount; 
-	results[5] = deadCount; 
-	results[6] = liveDeadCountRatio; 
+	results[0] = totalImageArea;
+	results[1] = liveAreaFraction;
+	results[2] = deadAreaFraction;
+	results[3] = totalAreaFraction;
+	results[4] = liveDeadAreaRatio; 
+	results[5] = totalCount;
+	results[6] = liveCount; 
+	results[7] = deadCount; 
+	results[8] = liveDeadCountRatio; 
 	//Array.print(results); 
 
-	resultsRowLabels = newArray("Live fraction of image (%)", "Dead fraction of image (%)", "Total fraction of image (%)", "Live/Dead area ratio", "Live bacteria count", "Dead bacteria count", "Live/Dead count ratio");
+	resultsRowLabels = newArray("Total image area (um^2)","Live fraction of image (%)", "Dead fraction of image (%)", "Total fraction of image (%)", "Live/Dead area ratio", "Total bacteria count", "Live bacteria count", "Dead bacteria count", "Live/Dead count ratio");
 	//Array.print(resultsRowLabels); 
 
 	// Generate new table from results lists for display and data saving purposes. 
